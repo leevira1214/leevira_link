@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>링크모음 관리</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root {
+  --bg: #EDF3F6; --card: #FFFFFF; --ink: #16263A; --muted: #5B6B7D;
+  --line: #D6E1E8; --sun: #F2A900; --sun-ink: #3A2A00; --soft: #E2ECF2;
+  --bad: #C2402F; --good: #2E7D4F;
+  --display: "Do Hyeon", "Noto Sans KR", system-ui, sans-serif;
+  --body: "Noto Sans KR", system-ui, -apple-system, sans-serif;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0F1823; --card: #172434; --ink: #E8EEF4; --muted: #9AA9B8;
+    --line: #26374A; --sun: #FFC233; --sun-ink: #2A1E00; --soft: #1D2D40;
+    --bad: #FF7A66; --good: #6FD39A;
+    color-scheme: dark;
+  }
+}
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+[hidden] { display: none !important; }
+.wrap {
+  max-width: 520px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+h1 { font-family: var(--display); font-weight: 400; font-size: 1.7rem; margin: 0; }
+h2 { font-size: 1rem; margin: 0; }
+.card { background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.help { margin: 0; color: var(--muted); font-size: 0.88rem; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; font-weight: 700; color: var(--muted); }
+input {
+  font: inherit; font-weight: 400; color: var(--ink); background: var(--bg);
+  border: 1.5px solid var(--line); border-radius: 10px; padding: 11px 12px; min-width: 0;
+}
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.row > * { flex: 1 1 auto; }
+.numfield { flex: 0 0 84px; }
+button {
+  font: inherit; font-weight: 700; border-radius: 10px; padding: 11px 16px; cursor: pointer;
+  border: 1.5px solid var(--line); background: var(--card); color: var(--ink);
+}
+button.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+button.small { padding: 6px 10px; font-size: 0.82rem; }
+button.danger { color: var(--bad); }
+button:disabled { opacity: 0.5; cursor: default; }
+input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+.linkbox { display: flex; gap: 8px; align-items: center; background: var(--soft); border-radius: 10px; padding: 8px 8px 8px 12px; }
+.linkbox a { flex: 1; min-width: 0; color: var(--ink); font-size: 0.88rem; overflow-wrap: anywhere; }
+.status { margin: 0; font-size: 0.88rem; min-height: 1.3em; }
+.status.bad { color: var(--bad); } .status.good { color: var(--good); }
+ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.it { display: grid; grid-template-columns: 44px 1fr; gap: 12px; padding: 12px; border: 1.5px solid var(--line); border-radius: 12px; }
+.it.editing { border-color: var(--sun); }
+.num { font-family: var(--display); font-size: 1.6rem; line-height: 1; text-align: center; background: var(--sun); color: var(--sun-ink); border-radius: 8px; padding: 9px 0 7px; align-self: start; font-variant-numeric: tabular-nums; }
+.it.nolink .num { background: var(--soft); color: var(--muted); }
+.body { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.name { font-weight: 700; overflow-wrap: anywhere; }
+.hint, .url { font-size: 0.82rem; color: var(--muted); overflow-wrap: anywhere; }
+.url.missing { color: var(--bad); }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.empty { text-align: center; color: var(--muted); padding: 16px 0; margin: 0; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>링크모음 관리</h1>
+    <button class="small" id="logoutBtn" hidden>로그아웃</button>
+  </div>
+
+  <p class="help" id="loading">불러오는 중…</p>
+
+  <!-- 1. 로그인 -->
+  <section class="card" id="viewLogin" hidden>
+    <h2>이메일로 로그인</h2>
+    <p class="help">이메일을 입력하면 로그인 링크를 보내 드려요. 메일의 링크를 누르면 이 화면으로 돌아와요.</p>
+    <form id="loginForm" class="row">
+      <label for="email" style="flex:1 1 220px">이메일<input id="email" type="email" required autocomplete="email" placeholder="name@example.com"></label>
+      <button class="primary" type="submit" style="align-self:end">링크 받기</button>
+    </form>
+    <p class="status" id="loginStatus" aria-live="polite"></p>
+  </section>
+
+  <!-- 2. 처음 설정 -->
+  <section class="card" id="viewSetup" hidden>
+    <h2>내 링크 페이지 만들기</h2>
+    <form id="setupForm" style="display:flex;flex-direction:column;gap:12px">
+      <label for="slug">페이지 주소 이름 (영문 소문자·숫자·-, 3~30자)<input id="slug" required pattern="[a-z0-9\-]{3,30}" placeholder="harutip" autocapitalize="none"></label>
+      <label for="setupTitle">페이지 제목<input id="setupTitle" required placeholder="하루팁"></label>
+      <label for="setupTagline">한 줄 소개 (선택)<input id="setupTagline" placeholder="하루 하나, 생활이 편해지는 물건"></label>
+      <button class="primary" type="submit">페이지 만들기</button>
+    </form>
+    <p class="status" id="setupStatus" aria-live="polite"></p>
+  </section>
+
+  <!-- 3. 관리 -->
+  <div id="viewEdit" hidden style="display:flex;flex-direction:column;gap:16px">
+    <section class="card">
+      <h2>내 페이지 주소</h2>
+      <div class="linkbox"><a id="publicLink" target="_blank" rel="noopener"></a><button class="small" id="copyLink" type="button">복사</button></div>
+      <p class="help">이 주소를 유튜브 채널의 링크에 넣으세요. 상품을 추가해도 주소는 바뀌지 않아요.</p>
+    </section>
+
+    <section class="card">
+      <h2 id="formTitle">상품 추가</h2>
+      <form id="itemForm" style="display:flex;flex-direction:column;gap:12px">
+        <div class="row">
+          <label for="fNum" class="numfield">번호<input id="fNum" type="number" min="1" required inputmode="numeric"></label>
+          <label for="fName" style="flex:1 1 180px">상품 이름<input id="fName" required placeholder="입체 수면 안대"></label>
+        </div>
+        <label for="fHint">한 줄 설명 (선택)<input id="fHint" placeholder="퇴근 후 숙면템"></label>
+        <label for="fUrl">쿠팡 파트너스 링크 (나중에 넣어도 돼요)<input id="fUrl" type="url" inputmode="url" placeholder="https://link.coupang.com/a/..." autocapitalize="none"></label>
+        <div class="row">
+          <button class="primary" type="submit" id="saveBtn">추가하기</button>
+          <button type="button" id="cancelEdit" hidden>취소</button>
+        </div>
+      </form>
+      <p class="status" id="itemStatus" aria-live="polite"></p>
+    </section>
+
+    <section class="card">
+      <h2>등록된 상품</h2>
+      <ol id="items"></ol>
+      <p class="empty" id="noItems" hidden>아직 상품이 없어요. 위에서 첫 상품을 추가해 보세요.</p>
+    </section>
+
+    <section class="card">
+      <h2>페이지 정보</h2>
+      <form id="infoForm" style="display:flex;flex-direction:column;gap:12px">
+        <label for="iTitle">페이지 제목<input id="iTitle" required></label>
+        <label for="iTagline">한 줄 소개<input id="iTagline"></label>
+        <button type="submit">저장</button>
+      </form>
+      <p class="status" id="infoStatus" aria-live="polite"></p>
+    </section>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://uzmlbbirtxqnyvoiluqx.supabase.co";
+const SUPABASE_KEY = "sb_publishable_f6LA4uU-ZF2w1jZt3K7gGQ_Hjq8zZbN";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const $ = id => document.getElementById(id);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const DISCLOSURE = "이 영상은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.";
+
+let user = null, page = null, items = [], editingId = null;
+
+function setStatus(id, text, kind) { const s = $(id); s.textContent = text || ""; s.className = "status" + (kind ? " " + kind : ""); }
+function show(view) {
+  $("loading").hidden = true;
+  ["viewLogin", "viewSetup", "viewEdit"].forEach(v => $(v).hidden = v !== view);
+  $("logoutBtn").hidden = view === "viewLogin";
+}
+function friendly(err) {
+  if (!err) return "";
+  if (err.code === "23505") return "이미 사용 중이에요. 다른 값으로 바꿔 주세요.";
+  if (err.code === "23514") return "형식이 맞지 않아요. 입력값을 확인해 주세요.";
+  return "문제가 생겼어요. 잠시 후 다시 시도해 주세요.";
+}
+async function copyText(text, btn) {
+  const original = btn.textContent;
+  try { await navigator.clipboard.writeText(text); }
+  catch {
+    const ta = el("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.append(ta); ta.select();
+    try { document.execCommand("copy"); } catch {}
+    ta.remove();
+  }
+  btn.textContent = "복사됨"; setTimeout(() => btn.textContent = original, 1500);
+}
+function publicUrl(slug) {
+  return location.origin + location.pathname.replace(/[^/]*$/, "") + "p.html?u=" + encodeURIComponent(slug);
+}
+
+/* ---------- 라우팅 ---------- */
+async function route() {
+  const { data } = await sb.auth.getSession();
+  user = data.session ? data.session.user : null;
+  if (!user) { show("viewLogin"); return; }
+  const { data: p, error } = await sb.from("pages").select("*").eq("owner", user.id).maybeSingle();
+  if (error) { show("viewLogin"); setStatus("loginStatus", friendly(error), "bad"); return; }
+  page = p;
+  if (!page) { show("viewSetup"); return; }
+  show("viewEdit");
+  const url = publicUrl(page.slug);
+  $("publicLink").href = url; $("publicLink").textContent = url;
+  $("iTitle").value = page.title; $("iTagline").value = page.tagline;
+  await loadItems();
+}
+
+/* ---------- 로그인 ---------- */
+$("loginForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  setStatus("loginStatus", "보내는 중…");
+  const redirect = location.origin + location.pathname;
+  const { error } = await sb.auth.signInWithOtp({ email: $("email").value.trim(), options: { emailRedirectTo: redirect } });
+  if (error) setStatus("loginStatus", error.status === 429 ? "잠시 후 다시 시도해 주세요. 메일 발송 횟수가 제한돼 있어요." : "메일을 보내지 못했어요. 이메일 주소를 확인해 주세요.", "bad");
+  else setStatus("loginStatus", "메일을 보냈어요. 메일함에서 로그인 링크를 눌러 주세요.", "good");
+});
+$("logoutBtn").addEventListener("click", async () => { await sb.auth.signOut(); location.reload(); });
+
+/* ---------- 처음 설정 ---------- */
+$("setupForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const slug = $("slug").value.trim().toLowerCase();
+  if (!/^[a-z0-9-]{3,30}$/.test(slug)) { setStatus("setupStatus", "주소 이름은 영문 소문자, 숫자, - 로 3~30자예요.", "bad"); return; }
+  setStatus("setupStatus", "만드는 중…");
+  const { error } = await sb.from("pages").insert({ slug, title: $("setupTitle").value.trim(), tagline: $("setupTagline").value.trim() });
+  if (error) { setStatus("setupStatus", error.code === "23505" ? "이미 다른 사람이 쓰는 주소예요. 다른 이름으로 해 주세요." : friendly(error), "bad"); return; }
+  await route();
+});
+
+/* ---------- 페이지 정보 ---------- */
+$("infoForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const { error } = await sb.from("pages").update({ title: $("iTitle").value.trim(), tagline: $("iTagline").value.trim() }).eq("id", page.id);
+  setStatus("infoStatus", error ? friendly(error) : "저장했어요.", error ? "bad" : "good");
+});
+$("copyLink").addEventListener("click", e => copyText($("publicLink").textContent, e.currentTarget));
+
+/* ---------- 상품 ---------- */
+async function loadItems() {
+  const { data, error } = await sb.from("items").select("*").eq("page_id", page.id).order("num", { ascending: false });
+  if (error) { setStatus("itemStatus", friendly(error), "bad"); return; }
+  items = data;
+  renderItems();
+  if (editingId === null) $("fNum").value = (items[0] ? items[0].num : 0) + 1;
+}
+
+function renderItems() {
+  const list = $("items"); list.replaceChildren();
+  $("noItems").hidden = items.length > 0;
+  for (const it of items) {
+    const li = el("li", "it" + (it.url ? "" : " nolink") + (it.id === editingId ? " editing" : ""));
+    const body = el("div", "body");
+    body.append(el("span", "name", it.name));
+    if (it.hint) body.append(el("span", "hint", it.hint));
+    body.append(el("span", "url" + (it.url ? "" : " missing"), it.url || "링크 없음 (공개 페이지에 '준비 중'으로 표시)"));
+    const actions = el("div", "actions");
+    const bEdit = el("button", "small", "수정"); bEdit.type = "button";
+    bEdit.addEventListener("click", () => startEdit(it));
+    const bCopy = el("button", "small", "설명란 문구 복사"); bCopy.type = "button";
+    bCopy.addEventListener("click", e => copyText(`👉 구매 링크: 채널 프로필 링크 → ${it.num}번\n${DISCLOSURE}`, e.currentTarget));
+    const bDel = el("button", "small danger", "삭제"); bDel.type = "button";
+    let armed = false, timer;
+    bDel.addEventListener("click", async () => {
+      if (!armed) { armed = true; bDel.textContent = "한 번 더 누르면 삭제"; timer = setTimeout(() => { armed = false; bDel.textContent = "삭제"; }, 3000); return; }
+      clearTimeout(timer); bDel.disabled = true;
+      const { error } = await sb.from("items").delete().eq("id", it.id);
+      if (error) { setStatus("itemStatus", friendly(error), "bad"); bDel.disabled = false; return; }
+      if (editingId === it.id) resetForm();
+      setStatus("itemStatus", `${it.num}번을 삭제했어요.`, "good");
+      await loadItems();
+    });
+    actions.append(bEdit, bCopy, bDel);
+    body.append(actions);
+    li.append(el("span", "num", String(it.num)), body);
+    list.append(li);
+  }
+}
+
+function startEdit(it) {
+  editingId = it.id;
+  $("formTitle").textContent = `${it.num}번 수정`;
+  $("fNum").value = it.num; $("fName").value = it.name; $("fHint").value = it.hint; $("fUrl").value = it.url;
+  $("saveBtn").textContent = "저장"; $("cancelEdit").hidden = false;
+  setStatus("itemStatus", "");
+  renderItems();
+  $("itemForm").scrollIntoView({ block: "center", behavior: "smooth" });
+}
+function resetForm() {
+  editingId = null;
+  $("itemForm").reset();
+  $("formTitle").textContent = "상품 추가";
+  $("saveBtn").textContent = "추가하기"; $("cancelEdit").hidden = true;
+  $("fNum").value = (items[0] ? items[0].num : 0) + 1;
+  renderItems();
+}
+$("cancelEdit").addEventListener("click", resetForm);
+
+$("itemForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const row = {
+    num: parseInt($("fNum").value, 10),
+    name: $("fName").value.trim(),
+    hint: $("fHint").value.trim(),
+    url: $("fUrl").value.trim()
+  };
+  if (row.url && !row.url.startsWith("https://")) { setStatus("itemStatus", "링크는 https:// 로 시작해야 해요.", "bad"); return; }
+  $("saveBtn").disabled = true;
+  const { error } = editingId
+    ? await sb.from("items").update(row).eq("id", editingId)
+    : await sb.from("items").insert({ ...row, page_id: page.id });
+  $("saveBtn").disabled = false;
+  if (error) { setStatus("itemStatus", error.code === "23505" ? `${row.num}번은 이미 있어요. 다른 번호로 해 주세요.` : friendly(error), "bad"); return; }
+  setStatus("itemStatus", editingId ? `${row.num}번을 저장했어요.` : `${row.num}번을 추가했어요.`, "good");
+  resetForm();
+  await loadItems();
+});
+
+/* ---------- 시작 ---------- */
+sb.auth.onAuthStateChange((event) => { if (event === "SIGNED_IN" || event === "SIGNED_OUT") route(); });
+route();
+</script>
+</body>
+</html>
