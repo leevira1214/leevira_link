@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>하루팁 상품 링크</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: 한 줄 세로 목록. 영상 속 "N번"을 바로 찾도록 번호가 가장 크게 보인다. */
+:root {
+  --bg: #EDF3F6;
+  --card: #FFFFFF;
+  --ink: #16263A;
+  --muted: #5B6B7D;
+  --line: #D6E1E8;
+  --sun: #F2A900;
+  --sun-ink: #3A2A00;
+  --soft: #E2ECF2;
+  --display: "Do Hyeon", "Noto Sans KR", system-ui, sans-serif;
+  --body: "Noto Sans KR", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1823; --card: #172434; --ink: #E8EEF4; --muted: #9AA9B8;
+    --line: #26374A; --sun: #FFC233; --sun-ink: #2A1E00; --soft: #1D2D40;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1823; --card: #172434; --ink: #E8EEF4; --muted: #9AA9B8;
+  --line: #26374A; --sun: #FFC233; --sun-ink: #2A1E00; --soft: #1D2D40;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--ink); font-family: var(--body); line-height: 1.5; }
+.wrap {
+  max-width: 480px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 40px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+header { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.logo {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: radial-gradient(circle at 50% 62%, var(--sun) 0 38%, transparent 39%), var(--soft);
+  border: 2px solid var(--line); position: relative; overflow: hidden;
+}
+.logo::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 30%; background: var(--card); border-top: 2px solid var(--line); }
+h1 { font-family: var(--display); font-weight: 400; font-size: 2rem; margin: 4px 0 0; letter-spacing: 0.02em; }
+.tag { margin: 0; color: var(--muted); font-size: 0.95rem; }
+.jump { display: flex; gap: 8px; }
+.jump label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.jump input {
+  flex: 1; min-width: 0; font: inherit; font-size: 1rem; padding: 12px 14px;
+  border: 1.5px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink);
+}
+.jump input:focus-visible { outline: 3px solid var(--sun); outline-offset: 1px; }
+.jump button {
+  font: inherit; font-weight: 700; padding: 12px 18px; border-radius: 12px; border: 0;
+  background: var(--ink); color: var(--bg); cursor: pointer;
+}
+.jump button:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+.series { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; color: var(--muted); margin: 6px 4px -8px; }
+ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.item a, .item .off {
+  display: grid; grid-template-columns: 52px 1fr auto; align-items: center; gap: 14px;
+  padding: 12px 14px 12px 12px; border-radius: 14px; background: var(--card);
+  border: 1.5px solid var(--line); color: var(--ink); text-decoration: none;
+}
+.item a:hover { border-color: var(--sun); }
+.item a:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+.num {
+  font-family: var(--display); font-size: 1.9rem; line-height: 1; text-align: center;
+  background: var(--sun); color: var(--sun-ink); border-radius: 10px; padding: 10px 0 8px;
+  font-variant-numeric: tabular-nums;
+}
+.off .num { background: var(--soft); color: var(--muted); }
+.txt { min-width: 0; display: flex; flex-direction: column; }
+.name { font-weight: 700; font-size: 1rem; }
+.hint { font-size: 0.85rem; color: var(--muted); }
+.go { font-size: 1.2rem; color: var(--muted); }
+.off .go { font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 999px; background: var(--soft); }
+.item.flash a, .item.flash .off { border-color: var(--sun); box-shadow: 0 0 0 3px var(--sun); }
+.msg { min-height: 1.2em; margin: -10px 4px 0; font-size: 0.88rem; color: var(--muted); }
+footer { font-size: 0.8rem; color: var(--muted); text-align: center; padding-top: 8px; border-top: 1px solid var(--line); }
+@media (prefers-reduced-motion: no-preference) { .item a { transition: border-color .15s; } html { scroll-behavior: smooth; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true"></div>
+    <h1>하루팁</h1>
+    <p class="tag">하루 하나, 생활이 편해지는 물건</p>
+  </header>
+
+  <form class="jump" id="jumpForm">
+    <label for="jumpInput">영상 번호</label>
+    <input id="jumpInput" type="number" inputmode="numeric" min="1" placeholder="영상에서 본 번호 입력">
+    <button type="submit">찾기</button>
+  </form>
+  <p class="msg" id="msg" aria-live="polite"></p>
+
+  <p class="series">겨울 대비 · 자취·주방</p>
+  <ol id="list"></ol>
+
+  <footer>이 페이지는 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</footer>
+</div>
+
+<script>
+// 링크를 받으면 url만 채우면 된다. 비어 있으면 '준비 중'으로 표시.
+const ITEMS = [
+  { n: 10, name: "2만 원대 연말 선물 TOP 3", hint: "동료·친구·부모님별 추천", url: "" },
+  { n: 9,  name: "결로·곰팡이 방지 제품", hint: "겨울 창문 물방울 해결", url: "" },
+  { n: 8,  name: "무선 미니 청소기", hint: "책상·차량·침대용", url: "" },
+  { n: 7,  name: "충전 겸용 손난로", hint: "출근길 손난로 + 보조배터리", url: "" },
+  { n: 6,  name: "밀폐 소분 용기 세트", hint: "반찬 버리지 않는 냉장고 정리", url: "" },
+  { n: 5,  name: "가습기", hint: "초음파 vs 가열식 비교", url: "" },
+  { n: 4,  name: "에어프라이어 종이 호일", hint: "설거지 없는 에프", url: "" },
+  { n: 3,  name: "전기요 vs 온수매트", hint: "전기요금·안전·세탁 비교", url: "" },
+  { n: 2,  name: "실리콘 주방 매트", hint: "좁은 자취방 주방용", url: "" },
+  { n: 1,  name: "문풍지·외풍 차단 테이프", hint: "창가 외풍 2분 시공", url: "" }
+];
+const list = document.getElementById("list");
+for (const it of ITEMS) {
+  const li = document.createElement("li");
+  li.className = "item"; li.id = "item-" + it.n;
+  const inner = `<span class="num">${it.n}</span><span class="txt"><span class="name">${it.name}</span><span class="hint">${it.hint}</span></span>`;
+  li.innerHTML = it.url
+    ? `<a href="${it.url}" target="_blank" rel="noopener sponsored">${inner}<span class="go" aria-hidden="true">→</span></a>`
+    : `<div class="off">${inner}<span class="go">준비 중</span></div>`;
+  list.appendChild(li);
+}
+const msg = document.getElementById("msg");
+document.getElementById("jumpForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const n = parseInt(document.getElementById("jumpInput").value, 10);
+  const el = document.getElementById("item-" + n);
+  document.querySelectorAll(".item.flash").forEach(x => x.classList.remove("flash"));
+  if (!el) { msg.textContent = n ? `${n}번 상품은 아직 없어요. 번호를 다시 확인해 주세요.` : "영상에서 본 번호를 입력해 주세요."; return; }
+  msg.textContent = "";
+  el.classList.add("flash");
+  el.scrollIntoView({ block: "center" });
+  const a = el.querySelector("a"); if (a) a.focus({ preventScroll: true });
+});
+</script>
+</body>
+</html>
