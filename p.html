@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>상품 링크</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root {
+  --bg: #EDF3F6; --card: #FFFFFF; --ink: #16263A; --muted: #5B6B7D;
+  --line: #D6E1E8; --sun: #F2A900; --sun-ink: #3A2A00; --soft: #E2ECF2;
+  --display: "Do Hyeon", "Noto Sans KR", system-ui, sans-serif;
+  --body: "Noto Sans KR", system-ui, -apple-system, sans-serif;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0F1823; --card: #172434; --ink: #E8EEF4; --muted: #9AA9B8;
+    --line: #26374A; --sun: #FFC233; --sun-ink: #2A1E00; --soft: #1D2D40;
+    color-scheme: dark;
+  }
+}
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 14px; line-height: 1.5; }
+[hidden] { display: none !important; }
+.wrap {
+  max-width: 480px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 40px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+header { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.logo {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: radial-gradient(circle at 50% 62%, var(--sun) 0 38%, transparent 39%), var(--soft);
+  border: 2px solid var(--line); position: relative; overflow: hidden;
+}
+.logo::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 30%; background: var(--card); border-top: 2px solid var(--line); }
+h1 { font-family: var(--display); font-weight: 400; font-size: 2rem; margin: 4px 0 0; letter-spacing: 0.02em; }
+.tag { margin: 0; color: var(--muted); font-size: 0.95rem; }
+.jump { display: flex; gap: 8px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.jump input {
+  flex: 1; min-width: 0; font: inherit; font-size: 1rem; padding: 12px 14px;
+  border: 1.5px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink);
+}
+.jump button { font: inherit; font-weight: 700; padding: 12px 18px; border-radius: 12px; border: 0; background: var(--ink); color: var(--bg); cursor: pointer; }
+input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.item a, .item .off {
+  display: grid; grid-template-columns: 52px 1fr auto; align-items: center; gap: 14px;
+  padding: 12px 14px 12px 12px; border-radius: 14px; background: var(--card);
+  border: 1.5px solid var(--line); color: var(--ink); text-decoration: none;
+}
+.item a:hover { border-color: var(--sun); }
+.num { font-family: var(--display); font-size: 1.9rem; line-height: 1; text-align: center; background: var(--sun); color: var(--sun-ink); border-radius: 10px; padding: 10px 0 8px; font-variant-numeric: tabular-nums; }
+.off .num { background: var(--soft); color: var(--muted); }
+.txt { min-width: 0; display: flex; flex-direction: column; }
+.name { font-weight: 700; font-size: 1rem; overflow-wrap: anywhere; }
+.hint { font-size: 0.85rem; color: var(--muted); overflow-wrap: anywhere; }
+.go { font-size: 1.2rem; color: var(--muted); }
+.off .go { font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 999px; background: var(--soft); }
+.item.flash a, .item.flash .off { border-color: var(--sun); box-shadow: 0 0 0 3px var(--sun); }
+.msg { min-height: 1.2em; margin: -10px 4px 0; font-size: 0.88rem; color: var(--muted); }
+.state { text-align: center; color: var(--muted); padding: 40px 0; }
+footer { font-size: 0.8rem; color: var(--muted); text-align: center; padding-top: 8px; border-top: 1px solid var(--line); }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true"></div>
+    <h1 id="title">&nbsp;</h1>
+    <p class="tag" id="tagline"></p>
+  </header>
+
+  <p class="state" id="state">불러오는 중…</p>
+
+  <div id="main" hidden>
+    <form class="jump" id="jumpForm">
+      <label for="jumpInput" class="sr">영상 번호</label>
+      <input id="jumpInput" type="number" inputmode="numeric" min="1" placeholder="영상에서 본 번호 입력">
+      <button type="submit">찾기</button>
+    </form>
+    <p class="msg" id="msg" aria-live="polite"></p>
+    <ol id="list"></ol>
+  </div>
+
+  <footer>이 페이지는 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</footer>
+</div>
+
+<script>
+const SUPABASE_URL = "https://uzmlbbirtxqnyvoiluqx.supabase.co";
+const SUPABASE_KEY = "sb_publishable_f6LA4uU-ZF2w1jZt3K7gGQ_Hjq8zZbN";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+
+const $ = id => document.getElementById(id);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+function renderItem(it) {
+  const li = el("li", "item"); li.id = "item-" + it.num;
+  const box = it.url ? el("a") : el("div", "off");
+  if (it.url) { box.href = it.url; box.target = "_blank"; box.rel = "noopener sponsored"; }
+  const txt = el("span", "txt");
+  txt.append(el("span", "name", it.name));
+  if (it.hint) txt.append(el("span", "hint", it.hint));
+  box.append(el("span", "num", String(it.num)), txt, el("span", "go", it.url ? "→" : "준비 중"));
+  li.append(box);
+  return li;
+}
+
+async function load() {
+  const slug = (new URLSearchParams(location.search).get("u") || "").trim().toLowerCase();
+  if (!slug) { $("state").textContent = "주소에 페이지 이름이 없어요. 링크를 다시 확인해 주세요."; return; }
+  try {
+    const { data: page, error } = await sb.from("pages").select("id, title, tagline").eq("slug", slug).maybeSingle();
+    if (error) throw error;
+    if (!page) { $("state").textContent = "페이지를 찾을 수 없어요. 링크를 다시 확인해 주세요."; return; }
+    $("title").textContent = page.title || slug;
+    $("tagline").textContent = page.tagline || "";
+    document.title = (page.title || slug) + " 상품 링크";
+    const { data: items, error: e2 } = await sb.from("items").select("num, name, hint, url").eq("page_id", page.id).order("num", { ascending: false });
+    if (e2) throw e2;
+    const list = $("list");
+    items.forEach(it => list.append(renderItem(it)));
+    $("state").hidden = true;
+    if (!items.length) { $("state").textContent = "아직 등록된 상품이 없어요."; $("state").hidden = false; }
+    else $("main").hidden = false;
+  } catch (err) {
+    console.error(err);
+    $("state").textContent = "불러오지 못했어요. 잠시 후 새로고침해 주세요.";
+  }
+}
+
+$("jumpForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const n = parseInt($("jumpInput").value, 10);
+  const target = $("item-" + n);
+  document.querySelectorAll(".item.flash").forEach(x => x.classList.remove("flash"));
+  if (!target) { $("msg").textContent = n ? `${n}번 상품은 아직 없어요. 번호를 다시 확인해 주세요.` : "영상에서 본 번호를 입력해 주세요."; return; }
+  $("msg").textContent = "";
+  target.classList.add("flash");
+  target.scrollIntoView({ block: "center", behavior: "smooth" });
+  const a = target.querySelector("a"); if (a) a.focus({ preventScroll: true });
+});
+
+load();
+</script>
+</body>
+</html>
