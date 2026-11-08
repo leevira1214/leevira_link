@@ -103,7 +103,7 @@ footer { font-size: 0.8rem; color: var(--muted); text-align: center; padding-top
   </form>
   <p class="msg" id="msg" aria-live="polite"></p>
 
-  <p class="series">겨울 대비 · 자취·주방</p>
+  <p class="series">최신 영상 순</p>
   <ol id="list"></ol>
 
   <footer>이 페이지는 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</footer>
@@ -112,16 +112,10 @@ footer { font-size: 0.8rem; color: var(--muted); text-align: center; padding-top
 <script>
 // 링크를 받으면 url만 채우면 된다. 비어 있으면 '준비 중'으로 표시.
 const ITEMS = [
-  { n: 10, name: "2만 원대 연말 선물 TOP 3", hint: "동료·친구·부모님별 추천", url: "" },
-  { n: 9,  name: "결로·곰팡이 방지 제품", hint: "겨울 창문 물방울 해결", url: "" },
-  { n: 8,  name: "무선 미니 청소기", hint: "책상·차량·침대용", url: "" },
-  { n: 7,  name: "충전 겸용 손난로", hint: "출근길 손난로 + 보조배터리", url: "" },
-  { n: 6,  name: "밀폐 소분 용기 세트", hint: "반찬 버리지 않는 냉장고 정리", url: "" },
-  { n: 5,  name: "가습기", hint: "초음파 vs 가열식 비교", url: "" },
-  { n: 4,  name: "에어프라이어 종이 호일", hint: "설거지 없는 에프", url: "" },
-  { n: 3,  name: "전기요 vs 온수매트", hint: "전기요금·안전·세탁 비교", url: "" },
-  { n: 2,  name: "실리콘 주방 매트", hint: "좁은 자취방 주방용", url: "" },
-  { n: 1,  name: "문풍지·외풍 차단 테이프", hint: "창가 외풍 2분 시공", url: "" }
+  { n: 4, name: "로봇청소기", hint: "커피 쏟아도 안 일어남", url: "" },
+  { n: 3, name: "귀여운 키보드", hint: "이거 누르면 하루가 풀림", url: "" },
+  { n: 2, name: "손난로", hint: "출근길 손난로 이거 귀엽다", url: "" },
+  { n: 1, name: "입체 수면 안대", hint: "퇴근 후 숙면템", url: "" }
 ];
 const list = document.getElementById("list");
 for (const it of ITEMS) {
